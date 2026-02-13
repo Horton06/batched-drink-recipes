@@ -1,7 +1,7 @@
 "use client"
 
 import type { Recipe } from "@/types/recipe"
-import { formatGrams } from "@/utils/unit-conversion"
+import { formatGrams, calculateTeaBatches } from "@/utils/unit-conversion"
 
 interface RecipePrintProps {
   recipe: Recipe
@@ -44,15 +44,28 @@ export function RecipePrint({ recipe, scaleFactor, targetAmount, targetUnit, tar
           </tr>
         </thead>
         <tbody>
-          {recipe.ingredients.map((ing, i) => (
-            <tr key={ing.name + i} className="border-b border-border/50">
-              <td className="py-2.5 text-sm text-foreground">{ing.name}</td>
-              <td className="py-2.5 text-xs capitalize text-muted-foreground">{ing.type}</td>
-              <td className="py-2.5 text-right font-mono text-sm font-medium tabular-nums text-foreground">
-                {formatGrams(ing.baseAmount * scaleFactor)}
-              </td>
-            </tr>
-          ))}
+          {recipe.ingredients.map((ing, i) => {
+            const scaledAmount = ing.baseAmount * scaleFactor
+            const isTea = ing.type === "tea"
+            const batches = isTea ? calculateTeaBatches(scaledAmount) : 0
+
+            return (
+              <tr key={ing.name + i} className="border-b border-border/50">
+                <td className="py-2.5 text-sm text-foreground">{ing.name}</td>
+                <td className="py-2.5 text-xs capitalize text-muted-foreground">
+                  {ing.type}
+                  {isTea && scaleFactor > 1 && (
+                    <div className="mt-0.5 font-medium text-foreground">
+                      ({batches} batch{batches !== 1 ? "es" : ""})
+                    </div>
+                  )}
+                </td>
+                <td className="py-2.5 text-right font-mono text-sm font-medium tabular-nums text-foreground">
+                  {formatGrams(scaledAmount)}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
         <tfoot>
           <tr className="border-t-2 border-foreground/20">
