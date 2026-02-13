@@ -105,3 +105,9 @@ export function detectIngredientType(name: string): "tea" | "syrup" | "other" {
 
   return "other"
 }
+
+export const TEA_BATCH_YIELD_G = 1850
+
+export function calculateTeaBatches(gramsNeeded: number): number {
+  return Math.ceil(gramsNeeded / TEA_BATCH_YIELD_G)
+}

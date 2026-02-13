@@ -1,7 +1,7 @@
 "use client"
 
 import type { Recipe } from "@/types/recipe"
-import { formatGrams } from "@/utils/unit-conversion"
+import { formatGrams, calculateTeaBatches } from "@/utils/unit-conversion"
 
 interface RecipeTableProps {
   recipe: Recipe
@@ -32,20 +32,33 @@ export function RecipeTable({ recipe, scaleFactor }: RecipeTableProps) {
           </tr>
         </thead>
         <tbody>
-          {recipe.ingredients.map((ing, i) => (
-            <tr
-              key={ing.name + i}
-              className="border-b last:border-b-0 transition-colors hover:bg-accent/50"
-            >
-              <td className="px-4 py-3 text-sm text-foreground">{ing.name}</td>
-              <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-muted-foreground">
-                {ing.baseAmount}g
-              </td>
-              <td className="px-4 py-3 text-right font-mono text-sm font-medium tabular-nums text-foreground">
-                {formatGrams(ing.baseAmount * scaleFactor)}
-              </td>
-            </tr>
-          ))}
+          {recipe.ingredients.map((ing, i) => {
+            const scaledAmount = ing.baseAmount * scaleFactor
+            const isTea = ing.type === "tea"
+            const batches = isTea ? calculateTeaBatches(scaledAmount) : 0
+
+            return (
+              <tr
+                key={ing.name + i}
+                className="border-b last:border-b-0 transition-colors hover:bg-accent/50"
+              >
+                <td className="px-4 py-3 text-sm text-foreground">{ing.name}</td>
+                <td className="px-4 py-3 text-right font-mono text-sm tabular-nums text-muted-foreground">
+                  {ing.baseAmount}g
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <div className="font-mono text-sm font-medium tabular-nums text-foreground">
+                    {formatGrams(scaledAmount)}
+                  </div>
+                  {isTea && scaleFactor > 1 && (
+                    <div className="mt-1 text-xs text-emerald-400">
+                      🍵 {batches} batch{batches !== 1 ? "es" : ""}
+                    </div>
+                  )}
+                </td>
+              </tr>
+            )
+          })}
         </tbody>
         <tfoot>
           <tr className="bg-card">
@@ -64,17 +77,30 @@ export function RecipeTable({ recipe, scaleFactor }: RecipeTableProps) {
 
       {/* Mobile card list */}
       <div className="divide-y md:hidden">
-        {recipe.ingredients.map((ing, i) => (
-          <div key={ing.name + i} className="flex items-center justify-between px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm text-foreground">{ing.name}</p>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">{ing.baseAmount}g base</p>
+        {recipe.ingredients.map((ing, i) => {
+          const scaledAmount = ing.baseAmount * scaleFactor
+          const isTea = ing.type === "tea"
+          const batches = isTea ? calculateTeaBatches(scaledAmount) : 0
+
+          return (
+            <div key={ing.name + i} className="flex items-center justify-between px-4 py-3">
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm text-foreground">{ing.name}</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">{ing.baseAmount}g base</p>
+              </div>
+              <div className="ml-4 text-right">
+                <p className="font-mono text-sm font-medium tabular-nums text-foreground">
+                  {formatGrams(scaledAmount)}
+                </p>
+                {isTea && scaleFactor > 1 && (
+                  <p className="mt-1 text-xs text-emerald-400">
+                    🍵 {batches} batch{batches !== 1 ? "es" : ""}
+                  </p>
+                )}
+              </div>
             </div>
-            <p className="ml-4 font-mono text-sm font-medium tabular-nums text-foreground">
-              {formatGrams(ing.baseAmount * scaleFactor)}
-            </p>
-          </div>
-        ))}
+          )
+        })}
         <div className="flex items-center justify-between bg-card px-4 py-3">
           <p className="text-sm font-semibold text-foreground">Total</p>
           <p className="font-mono text-sm font-semibold tabular-nums text-brand">
