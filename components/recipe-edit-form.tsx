@@ -132,7 +132,10 @@ export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps
                   min={0}
                   step={0.01}
                   value={ing.amount || ""}
-                  onChange={(e) => updateIngredient(i, { amount: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    updateIngredient(i, { amount: val === "" ? 0 : parseFloat(val) })
+                  }}
                   placeholder="0"
                   className="h-9 w-24 rounded-md border bg-background px-3 font-mono text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
                 />
