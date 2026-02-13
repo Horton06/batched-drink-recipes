@@ -1,23 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Trash2 } from "lucide-react"
+import { Plus, Trash2, Info } from "lucide-react"
 import type { Recipe, IngredientType } from "@/types/recipe"
-import { convertToGrams, getAvailableUnits } from "@/utils/unit-conversion"
+import { convertToGrams, getAvailableUnits, detectIngredientType } from "@/utils/unit-conversion"
 
 interface RecipeEditFormProps {
   recipe: Recipe
   onSave: (recipe: Recipe) => void
   onCancel: () => void
 }
-
-const TYPES: { value: IngredientType; label: string }[] = [
-  { value: "other", label: "Other" },
-  { value: "tea", label: "Tea" },
-  { value: "syrup", label: "Syrup" },
-  { value: "water", label: "Water" },
-  { value: "liquid", label: "Liquid / Concentrate" },
-]
 
 interface FormIngredient {
   name: string
@@ -29,6 +21,7 @@ interface FormIngredient {
 export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps) {
   const [name, setName] = useState(recipe.name)
   const [notes, setNotes] = useState(recipe.notes || "")
+  const [showHelp, setShowHelp] = useState(false)
   const [ingredients, setIngredients] = useState<FormIngredient[]>(
     recipe.ingredients.map((ing) => ({
       name: ing.name,
@@ -45,7 +38,17 @@ export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps
   )
 
   const updateIngredient = (i: number, patch: Partial<FormIngredient>) => {
-    setIngredients((prev) => prev.map((ing, idx) => (idx === i ? { ...ing, ...patch } : ing)))
+    setIngredients((prev) =>
+      prev.map((ing, idx) => {
+        if (idx !== i) return ing
+        const updated = { ...ing, ...patch }
+        // Auto-detect type when name changes
+        if (patch.name !== undefined) {
+          updated.type = detectIngredientType(updated.name)
+        }
+        return updated
+      })
+    )
   }
 
   const removeIngredient = (i: number) => {
@@ -106,6 +109,35 @@ export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps
         />
       </div>
 
+      <div className="mb-6 rounded-lg border border-brand/20 bg-brand/5 p-4">
+        <button
+          type="button"
+          onClick={() => setShowHelp(!showHelp)}
+          className="flex w-full items-center justify-between text-left"
+        >
+          <div className="flex items-center gap-2">
+            <Info className="h-4 w-4 text-brand" />
+            <span className="text-sm font-medium text-foreground">How to add ingredients</span>
+          </div>
+          <span className="text-xs text-muted-foreground">{showHelp ? "Hide" : "Show"}</span>
+        </button>
+        {showHelp && (
+          <div className="mt-3 space-y-2 border-t border-brand/10 pt-3 text-sm text-muted-foreground">
+            <p>
+              <strong className="text-foreground">Ingredient names:</strong> Include "tea" or "syrup" in the name for automatic type detection.
+            </p>
+            <div className="space-y-1 pl-4">
+              <p>• 🍵 <strong className="text-emerald-400">Tea</strong> - e.g., "Earl Grey Tea", "Green Tea" (used for batch calculations)</p>
+              <p>• 🍯 <strong className="text-amber-400">Syrup</strong> - e.g., "Simple Syrup", "Vanilla Syrup" (uses 1.4x density)</p>
+              <p>• Other ingredients will use standard density (1.0x)</p>
+            </div>
+            <p className="pt-2">
+              <strong className="text-foreground">Units:</strong> You can enter ingredients in any unit (oz, ml, cups, etc.) and they'll be automatically converted to grams.
+            </p>
+          </div>
+        )}
+      </div>
+
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">Ingredients</h3>
         <span className="rounded-md bg-brand/10 px-2.5 py-1 font-mono text-xs font-medium tabular-nums text-brand">
@@ -117,14 +149,26 @@ export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps
         {ingredients.map((ing, i) => (
           <div key={i} className="rounded-lg border bg-card p-4">
             <div className="flex flex-col gap-3">
-              <input
-                type="text"
-                required
-                value={ing.name}
-                onChange={(e) => updateIngredient(i, { name: e.target.value })}
-                placeholder="Ingredient name"
-                className="h-9 w-full rounded-md border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  required
+                  value={ing.name}
+                  onChange={(e) => updateIngredient(i, { name: e.target.value })}
+                  placeholder="Ingredient name (e.g., Earl Grey Tea, Simple Syrup)"
+                  className="h-9 flex-1 rounded-md border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
+                />
+                {ing.type === "tea" && (
+                  <span className="shrink-0 rounded-full bg-emerald-900/30 px-2 py-1 text-xs text-emerald-400 border border-emerald-800/40">
+                    🍵 Tea
+                  </span>
+                )}
+                {ing.type === "syrup" && (
+                  <span className="shrink-0 rounded-full bg-amber-900/30 px-2 py-1 text-xs text-amber-400 border border-amber-800/40">
+                    🍯 Syrup
+                  </span>
+                )}
+              </div>
               <div className="flex gap-2">
                 <input
                   type="number"
@@ -132,29 +176,27 @@ export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps
                   min={0}
                   step={0.01}
                   value={ing.amount || ""}
-                  onChange={(e) => updateIngredient(i, { amount: parseFloat(e.target.value) || 0 })}
+                  onChange={(e) => {
+                    const val = e.target.value
+                    updateIngredient(i, { amount: val === "" ? 0 : parseFloat(val) })
+                  }}
+                  onBlur={(e) => {
+                    const val = parseFloat(e.target.value)
+                    if (isNaN(val) || val <= 0) {
+                      updateIngredient(i, { amount: 0.1 })
+                    }
+                  }}
                   placeholder="0"
                   className="h-9 w-24 rounded-md border bg-background px-3 font-mono text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
                 />
                 <select
                   value={ing.unit}
                   onChange={(e) => updateIngredient(i, { unit: e.target.value })}
-                  className="h-9 rounded-md border bg-background px-2 text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
+                  className="h-9 flex-1 rounded-md border bg-background px-2 text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
                 >
                   {units.map((u) => (
                     <option key={u.value} value={u.value}>
                       {u.label}
-                    </option>
-                  ))}
-                </select>
-                <select
-                  value={ing.type}
-                  onChange={(e) => updateIngredient(i, { type: e.target.value as IngredientType })}
-                  className="h-9 rounded-md border bg-background px-2 text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
-                >
-                  {TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
                     </option>
                   ))}
                 </select>

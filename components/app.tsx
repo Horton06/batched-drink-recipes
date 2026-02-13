@@ -182,7 +182,8 @@ export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   const selected = recipes.find((r) => r.id === selectedId) || recipes[0]
-  const targetGrams = targetToGrams(targetAmount, targetUnit, selected?.totalWeight || 250)
+  const effectiveTargetAmount = Math.max(0.1, targetAmount)
+  const targetGrams = targetToGrams(effectiveTargetAmount, targetUnit, selected?.totalWeight || 250)
   const scaleFactor = selected ? targetGrams / selected.totalWeight : 1
 
   // Silent Neon sync on mount
@@ -363,7 +364,7 @@ export default function App() {
                       {recipe.ingredients.length} ingredients &middot; {formatGrams(recipe.totalWeight)} base
                     </p>
                   </div>
-                  <div className="ml-2 flex shrink-0 items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="ml-2 flex shrink-0 items-center gap-1 opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100">
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
@@ -432,13 +433,20 @@ export default function App() {
                 </span>
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">Target</label>
+                    <label className="text-xs font-medium text-muted-foreground">Amount</label>
                     <input
                       type="number"
                       min={0.1}
                       step={0.5}
-                      value={targetAmount}
-                      onChange={(e) => setTargetAmount(Math.max(0.1, parseFloat(e.target.value) || 0.1))}
+                      value={targetAmount || ""}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        const parsed = val === "" ? 0 : parseFloat(val)
+                        setTargetAmount(isNaN(parsed) ? 0 : parsed)
+                      }}
+                      onBlur={() => {
+                        if (targetAmount < 0.1) setTargetAmount(0.1)
+                      }}
                       className="h-9 w-24 rounded-md border bg-background px-3 font-mono text-sm tabular-nums text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
                     />
                   </div>

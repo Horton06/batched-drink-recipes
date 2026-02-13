@@ -91,3 +91,17 @@ export function formatNumber(value: number): string {
 export function formatGrams(value: number): string {
   return Math.round(value).toLocaleString() + "g"
 }
+
+export function detectIngredientType(name: string): "tea" | "syrup" | "other" {
+  const lowerName = name.toLowerCase().trim()
+
+  if (lowerName.includes("tea")) {
+    return "tea"
+  }
+
+  if (lowerName.includes("syrup")) {
+    return "syrup"
+  }
+
+  return "other"
+}
