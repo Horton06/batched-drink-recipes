@@ -219,16 +219,12 @@ export default function App() {
   const targetGrams = targetToGrams(effectiveTargetAmount, targetUnit, selected?.totalWeight || 250)
   const scaleFactor = selected ? targetGrams / selected.totalWeight : 1
 
-  // Silent Neon sync on mount
+  // Load from Neon on mount; fall back to hardcoded samples when DB unavailable
   useEffect(() => {
     getAllRecipes().then((dbRecipes) => {
       if (dbRecipes.length > 0) {
-        const sampleIds = new Set(getSampleRecipes().map((r) => r.id))
-        const extras = dbRecipes.filter((r) => !sampleIds.has(r.id))
-        if (extras.length > 0) {
-          setRecipes((prev) => [...prev, ...extras])
-          setRecipeOrder((prev) => [...prev, ...extras.map((r) => r.id)])
-        }
+        setRecipes(dbRecipes)
+        setRecipeOrder(dbRecipes.map((r) => r.id))
       }
     })
   }, [])
