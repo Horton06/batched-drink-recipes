@@ -1,7 +1,7 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
-import { Search, Plus, Printer, Pencil, Trash2, GlassWater, Menu, X } from "lucide-react"
+import { useState, useEffect, useCallback, useMemo } from "react"
+import { Search, Plus, Printer, Pencil, Trash2, GlassWater, Menu, X, GripVertical } from "lucide-react"
 import { Toaster, toast } from "sonner"
 import type { Recipe } from "@/types/recipe"
 import { targetToGrams, getTargetUnits, formatGrams } from "@/utils/unit-conversion"
@@ -163,9 +163,11 @@ function getSampleRecipes(): Recipe[] {
 }
 
 // ---------------------------------------------------------------------------
-// Tabs
+// Tabs / Sort / Filter
 // ---------------------------------------------------------------------------
 type Tab = "recipes" | "add" | "print"
+type SortBy = "default" | "az" | "za" | "weight" | "ingredients"
+type FilterType = "all" | "tea" | "syrup"
 
 // ---------------------------------------------------------------------------
 // Main App
@@ -180,6 +182,11 @@ export default function App() {
   const [editingRecipe, setEditingRecipe] = useState<Recipe | null>(null)
   const [deleteConfirm, setDeleteConfirm] = useState<Recipe | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sortBy, setSortBy] = useState<SortBy>("default")
+  const [filterType, setFilterType] = useState<FilterType>("all")
+  const [recipeOrder, setRecipeOrder] = useState<string[]>(() => getSampleRecipes().map((r) => r.id))
+  const [dragId, setDragId] = useState<string | null>(null)
+  const [dragOverId, setDragOverId] = useState<string | null>(null)
 
   const selected = recipes.find((r) => r.id === selectedId) || recipes[0]
   const effectiveTargetAmount = Math.max(0.1, targetAmount)
@@ -190,20 +197,46 @@ export default function App() {
   useEffect(() => {
     getAllRecipes().then((dbRecipes) => {
       if (dbRecipes.length > 0) {
-        setRecipes((prev) => {
-          const sampleIds = new Set(getSampleRecipes().map((r) => r.id))
-          const extras = dbRecipes.filter((r) => !sampleIds.has(r.id))
-          return [...prev, ...extras]
-        })
+        const sampleIds = new Set(getSampleRecipes().map((r) => r.id))
+        const extras = dbRecipes.filter((r) => !sampleIds.has(r.id))
+        if (extras.length > 0) {
+          setRecipes((prev) => [...prev, ...extras])
+          setRecipeOrder((prev) => [...prev, ...extras.map((r) => r.id)])
+        }
       }
     })
   }, [])
 
-  const filteredRecipes = recipes.filter(
-    (r) =>
-      r.name.toLowerCase().includes(search.toLowerCase()) ||
-      r.ingredients.some((i) => i.name.toLowerCase().includes(search.toLowerCase()))
-  )
+  const processedRecipes = useMemo(() => {
+    let result = recipes.filter((r) => {
+      const matchesSearch =
+        r.name.toLowerCase().includes(search.toLowerCase()) ||
+        r.ingredients.some((i) => i.name.toLowerCase().includes(search.toLowerCase()))
+      if (!matchesSearch) return false
+      if (filterType === "tea") return r.ingredients.some((i) => i.type === "tea")
+      if (filterType === "syrup") return r.ingredients.some((i) => i.type === "syrup")
+      return true
+    })
+
+    if (sortBy === "az") {
+      result = [...result].sort((a, b) => a.name.localeCompare(b.name))
+    } else if (sortBy === "za") {
+      result = [...result].sort((a, b) => b.name.localeCompare(a.name))
+    } else if (sortBy === "weight") {
+      result = [...result].sort((a, b) => b.totalWeight - a.totalWeight)
+    } else if (sortBy === "ingredients") {
+      result = [...result].sort((a, b) => b.ingredients.length - a.ingredients.length)
+    } else {
+      // Custom order: sort by recipeOrder, unknown IDs go to the end
+      result = [...result].sort((a, b) => {
+        const ai = recipeOrder.indexOf(a.id)
+        const bi = recipeOrder.indexOf(b.id)
+        return (ai === -1 ? Infinity : ai) - (bi === -1 ? Infinity : bi)
+      })
+    }
+
+    return result
+  }, [recipes, search, filterType, sortBy, recipeOrder])
 
   const handleSelectRecipe = useCallback((id: string) => {
     setSelectedId(id)
@@ -212,6 +245,7 @@ export default function App() {
 
   const handleAddRecipe = useCallback((recipe: Recipe) => {
     setRecipes((prev) => [...prev, recipe])
+    setRecipeOrder((prev) => [...prev, recipe.id])
     setSelectedId(recipe.id)
     setTab("recipes")
     toast.success("Recipe added")
@@ -235,12 +269,51 @@ export default function App() {
         }
         return next
       })
+      setRecipeOrder((prev) => prev.filter((id) => id !== recipe.id))
       setDeleteConfirm(null)
       toast.success("Recipe deleted")
       deleteRecipe(recipe.id)
     },
     [selectedId]
   )
+
+  const handleDragStart = useCallback((id: string) => {
+    setDragId(id)
+  }, [])
+
+  const handleDragOver = useCallback((e: React.DragEvent, id: string) => {
+    e.preventDefault()
+    setDragOverId(id)
+  }, [])
+
+  const handleDrop = useCallback(
+    (targetId: string) => {
+      if (!dragId || dragId === targetId) {
+        setDragId(null)
+        setDragOverId(null)
+        return
+      }
+      setRecipeOrder((prev) => {
+        // Ensure every recipe ID is represented in the order array
+        const allIds = recipes.map((r) => r.id)
+        const full = [...prev, ...allIds.filter((id) => !prev.includes(id))]
+        const fromIdx = full.indexOf(dragId)
+        const toIdx = full.indexOf(targetId)
+        if (fromIdx === -1 || toIdx === -1) return prev
+        full.splice(fromIdx, 1)
+        full.splice(toIdx, 0, dragId)
+        return full
+      })
+      setDragId(null)
+      setDragOverId(null)
+    },
+    [dragId, recipes]
+  )
+
+  const handleDragEnd = useCallback(() => {
+    setDragId(null)
+    setDragOverId(null)
+  }, [])
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -325,8 +398,8 @@ export default function App() {
             (sidebarOpen ? "translate-x-0" : "-translate-x-full")
           }
         >
-          {/* Search */}
-          <div className="border-b p-3">
+          {/* Search + Sort/Filter controls */}
+          <div className="border-b p-3 space-y-2">
             <div className="flex h-9 items-center gap-2 rounded-md border bg-background px-3 transition-colors focus-within:ring-1 focus-within:ring-ring">
               <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
               <input
@@ -337,16 +410,56 @@ export default function App() {
                 className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
             </div>
+            {/* Filter chips */}
+            <div className="flex gap-1">
+              {(
+                [
+                  { value: "all", label: "All" },
+                  { value: "tea", label: "🍵 Tea" },
+                  { value: "syrup", label: "🍯 Syrup" },
+                ] as { value: FilterType; label: string }[]
+              ).map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setFilterType(f.value)}
+                  className={
+                    "rounded-full px-2.5 py-1 text-xs font-medium transition-colors " +
+                    (filterType === f.value
+                      ? "bg-brand text-brand-foreground"
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground")
+                  }
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+            {/* Sort select */}
+            <select
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortBy)}
+              className="h-7 w-full rounded-md border bg-background px-2 text-xs text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
+            >
+              <option value="default">Custom order</option>
+              <option value="az">Name A–Z</option>
+              <option value="za">Name Z–A</option>
+              <option value="weight">Heaviest first</option>
+              <option value="ingredients">Most ingredients</option>
+            </select>
           </div>
 
           {/* Recipe list */}
           <div className="flex-1 overflow-y-auto py-1">
-            {filteredRecipes.length === 0 ? (
+            {processedRecipes.length === 0 ? (
               <div className="p-4 text-center text-sm text-muted-foreground">No recipes found</div>
             ) : (
-              filteredRecipes.map((recipe) => (
+              processedRecipes.map((recipe) => (
                 <div
                   key={recipe.id}
+                  draggable={sortBy === "default"}
+                  onDragStart={() => handleDragStart(recipe.id)}
+                  onDragOver={(e) => handleDragOver(e, recipe.id)}
+                  onDrop={() => handleDrop(recipe.id)}
+                  onDragEnd={handleDragEnd}
                   onClick={() => {
                     handleSelectRecipe(recipe.id)
                     setTab("recipes")
@@ -355,9 +468,15 @@ export default function App() {
                     "group mx-1.5 my-0.5 flex cursor-pointer items-center justify-between rounded-md px-3 py-2.5 transition-colors " +
                     (recipe.id === selectedId
                       ? "bg-brand/10 text-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground")
+                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground") +
+                    (dragOverId === recipe.id && dragId !== recipe.id
+                      ? " ring-1 ring-brand/50"
+                      : "")
                   }
                 >
+                  {sortBy === "default" && (
+                    <GripVertical className="mr-1.5 h-3.5 w-3.5 shrink-0 cursor-grab text-muted-foreground/40 opacity-0 group-hover:opacity-100 active:cursor-grabbing" />
+                  )}
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{recipe.name}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
