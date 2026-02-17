@@ -12,144 +12,172 @@ import { RecipeEditForm } from "@/components/recipe-edit-form"
 import { RecipePrint } from "@/components/recipe-print"
 
 // ---------------------------------------------------------------------------
-// Sample recipes -- exact specs, do not modify
+// Sample recipes -- optimized specs with target notes
 // ---------------------------------------------------------------------------
 function getSampleRecipes(): Recipe[] {
   return [
     {
       id: "strawberry-lemonade",
       name: "Strawberry Lemonade",
-      totalWeight: 250,
+      totalWeight: 250.5,
+      notes: "Brix: 9-10° | TA: 0.6-0.7% | pH: 2.8-3.0 | Salinity: 0.04%",
       ingredients: [
         { name: "Lemon Concentrate", baseAmount: 34, unit: "g", type: "liquid" },
-        { name: "Water", baseAmount: 178, unit: "g", type: "water" },
+        { name: "Water", baseAmount: 177.5, unit: "g", type: "water" },
         { name: "Strawberry Syrup", baseAmount: 22.5, unit: "g", type: "syrup" },
         { name: "Cane Syrup", baseAmount: 15.5, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "blueberry-lemonade",
       name: "Blueberry Lemonade",
-      totalWeight: 250,
+      totalWeight: 250.5,
+      notes: "Brix: 9-10° | TA: 0.6-0.7% | pH: 2.8-3.0 | Salinity: 0.04%",
       ingredients: [
         { name: "Lemon Concentrate", baseAmount: 34, unit: "g", type: "liquid" },
-        { name: "Water", baseAmount: 178, unit: "g", type: "water" },
+        { name: "Water", baseAmount: 177.5, unit: "g", type: "water" },
         { name: "Blueberry Syrup", baseAmount: 22.5, unit: "g", type: "syrup" },
         { name: "Cane Syrup", baseAmount: 15.5, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "mango-earl-grey",
       name: "Mango Earl Grey",
-      totalWeight: 250,
+      totalWeight: 259,
+      notes: "Brix: 7° | TA: 0.15% | pH: 4.0-4.3 | Salinity: 0.04%",
       ingredients: [
-        { name: "Earl Grey Tea", baseAmount: 226, unit: "g", type: "tea" },
-        { name: "Mango Syrup", baseAmount: 24, unit: "g", type: "syrup" },
+        { name: "Earl Grey Tea", baseAmount: 220, unit: "g", type: "tea" },
+        { name: "Mango Syrup", baseAmount: 28, unit: "g", type: "syrup" },
+        { name: "Lime Juice", baseAmount: 10, unit: "g", type: "liquid" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "blueberry-pomegranate-hibiscus",
       name: "Blueberry Pomegranate Hibiscus",
-      totalWeight: 250,
+      totalWeight: 258.5,
+      notes: "Brix: 9° | TA: 0.85% | pH: 2.6-2.8 | Salinity: 0.04%",
       ingredients: [
-        { name: "Hibiscus Tea", baseAmount: 226, unit: "g", type: "tea" },
-        { name: "Pomegranate Syrup", baseAmount: 16, unit: "g", type: "syrup" },
-        { name: "Blueberry Syrup", baseAmount: 8, unit: "g", type: "syrup" },
+        { name: "Hibiscus Tea", baseAmount: 220, unit: "g", type: "tea" },
+        { name: "Pomegranate Syrup", baseAmount: 20, unit: "g", type: "syrup" },
+        { name: "Blueberry Syrup", baseAmount: 12, unit: "g", type: "syrup" },
+        { name: "Vanilla Syrup", baseAmount: 6, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "cold-brew",
       name: "Cold Brew",
-      totalWeight: 250,
+      totalWeight: 250.5,
+      notes: "Brix: 0° | TA: 0.05% | pH: 5.0-5.5 | Salinity: 0.04%",
       ingredients: [
         { name: "Cold Brew Concentrate", baseAmount: 125, unit: "g", type: "liquid" },
-        { name: "Water", baseAmount: 125, unit: "g", type: "water" },
+        { name: "Water", baseAmount: 124.5, unit: "g", type: "water" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "peach-palmer",
       name: "Peach Palmer",
-      totalWeight: 250,
+      totalWeight: 250.5,
+      notes: "Brix: 10-11° | TA: 0.30-0.35% | pH: 3.2-3.5 | Salinity: 0.04%",
       ingredients: [
         { name: "Peach Tea", baseAmount: 106, unit: "g", type: "tea" },
         { name: "Lemon Concentrate", baseAmount: 17, unit: "g", type: "liquid" },
-        { name: "Water", baseAmount: 89, unit: "g", type: "water" },
+        { name: "Water", baseAmount: 88.5, unit: "g", type: "water" },
         { name: "Pure Cane Syrup", baseAmount: 38, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "mango-green-tea-lemonade",
       name: "Mango Green Tea Lemonade",
-      totalWeight: 250.5,
+      totalWeight: 251,
+      notes: "Brix: 8.5° | TA: 0.25-0.30% | pH: 3.5-3.8 | Salinity: 0.04%",
       ingredients: [
-        { name: "Green Tea", baseAmount: 134, unit: "g", type: "tea" },
+        { name: "Green Tea", baseAmount: 130, unit: "g", type: "tea" },
         { name: "Lemon Concentrate", baseAmount: 15.5, unit: "g", type: "liquid" },
         { name: "Water", baseAmount: 71, unit: "g", type: "water" },
-        { name: "Mango Syrup", baseAmount: 20, unit: "g", type: "syrup" },
+        { name: "Mango Syrup", baseAmount: 24, unit: "g", type: "syrup" },
         { name: "Pure Cane Syrup", baseAmount: 10, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "blossom-berry-lemonade-bbl",
       name: "Blossom Berry Lemonade (BBL)",
-      totalWeight: 249.5,
+      totalWeight: 250,
+      notes: "Brix: 9° | TA: 0.6-0.7% | pH: 2.8-3.0 | Salinity: 0.04%",
       ingredients: [
         { name: "Lemon Concentrate", baseAmount: 34, unit: "g", type: "liquid" },
-        { name: "Water", baseAmount: 178, unit: "g", type: "water" },
+        { name: "Water", baseAmount: 177.5, unit: "g", type: "water" },
         { name: "Blueberry Syrup", baseAmount: 15, unit: "g", type: "syrup" },
         { name: "Pomegranate Syrup", baseAmount: 15, unit: "g", type: "syrup" },
         { name: "Cane Syrup", baseAmount: 7.5, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "quince-cooler",
       name: "Quince Cooler",
-      totalWeight: 250,
+      totalWeight: 257,
+      notes: "Brix: 9° | TA: 0.35% | pH: 3.3-3.6 | Salinity: 0.04%",
       ingredients: [
-        { name: "Quince Tea", baseAmount: 203, unit: "g", type: "tea" },
-        { name: "Lemon Concentrate", baseAmount: 16, unit: "g", type: "liquid" },
-        { name: "Mango Syrup", baseAmount: 18, unit: "g", type: "syrup" },
-        { name: "Pure Cane Syrup", baseAmount: 13, unit: "g", type: "syrup" },
+        { name: "Quince Tea", baseAmount: 198, unit: "g", type: "tea" },
+        { name: "Lemon Concentrate", baseAmount: 22, unit: "g", type: "liquid" },
+        { name: "Mango Syrup", baseAmount: 22, unit: "g", type: "syrup" },
+        { name: "Pure Cane Syrup", baseAmount: 14, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "blueberry-pomegranate-earl-grey",
       name: "Blueberry Pomegranate Earl Grey",
-      totalWeight: 250,
+      totalWeight: 260,
+      notes: "Brix: 7° | TA: 0.15% | pH: 3.8-4.2 | Salinity: 0.04%",
       ingredients: [
-        { name: "Earl Grey", baseAmount: 227, unit: "g", type: "tea" },
-        { name: "Blueberry Syrup", baseAmount: 9, unit: "g", type: "syrup" },
-        { name: "Pomegranate Syrup", baseAmount: 9, unit: "g", type: "syrup" },
-        { name: "Cane Syrup", baseAmount: 5, unit: "g", type: "syrup" },
+        { name: "Earl Grey", baseAmount: 217, unit: "g", type: "tea" },
+        { name: "Blueberry Syrup", baseAmount: 12, unit: "g", type: "syrup" },
+        { name: "Pomegranate Syrup", baseAmount: 12, unit: "g", type: "syrup" },
+        { name: "Cane Syrup", baseAmount: 8, unit: "g", type: "syrup" },
+        { name: "Lime Juice", baseAmount: 10, unit: "g", type: "liquid" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "guava-green-tea",
       name: "Guava Green Tea",
-      totalWeight: 250,
+      totalWeight: 253.5,
+      notes: "Brix: 7.5° | TA: 0.30% | pH: 3.8-4.2 | Salinity: 0.04%",
       ingredients: [
-        { name: "Green Tea", baseAmount: 173.5, unit: "g", type: "tea" },
-        { name: "Peach Tea", baseAmount: 26, unit: "g", type: "tea" },
+        { name: "Green Tea", baseAmount: 170, unit: "g", type: "tea" },
+        { name: "Peach Tea", baseAmount: 30, unit: "g", type: "tea" },
         { name: "Lime Juice", baseAmount: 21.5, unit: "g", type: "liquid" },
-        { name: "Guava Syrup", baseAmount: 20, unit: "g", type: "syrup" },
+        { name: "Guava Syrup", baseAmount: 22, unit: "g", type: "syrup" },
         { name: "Pear Syrup", baseAmount: 9, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "strawberry-bloom",
       name: "Strawberry Bloom",
-      totalWeight: 250,
+      totalWeight: 254,
+      notes: "Brix: 7° | TA: 0.20% | pH: 4.0-4.5 | Salinity: 0.04%",
       ingredients: [
-        { name: "Green Tea", baseAmount: 210, unit: "g", type: "tea" },
-        { name: "Strawberry Rose Syrup", baseAmount: 16, unit: "g", type: "syrup" },
+        { name: "Green Tea", baseAmount: 206, unit: "g", type: "tea" },
+        { name: "Strawberry Rose Syrup", baseAmount: 20, unit: "g", type: "syrup" },
         { name: "Lime Juice", baseAmount: 16, unit: "g", type: "liquid" },
-        { name: "Cane Syrup", baseAmount: 8, unit: "g", type: "syrup" },
+        { name: "Cane Syrup", baseAmount: 11, unit: "g", type: "syrup" },
+        { name: "Saline Solution (20%)", baseAmount: 0.5, unit: "g", type: "other" },
       ],
     },
     {
       id: "lucky-revival",
-      name: "Lucky Revival",
+      name: "Steady State (Lucky Revival)",
       totalWeight: 259,
+      notes: "Brix: 8° | TA: 0.14% | pH: 3.8-4.0 | Salinity: 0.12% | Na: ~230mg | K: ~113mg",
       ingredients: [
         { name: "Coconut Water", baseAmount: 125, unit: "g", type: "water" },
         { name: "Cucumber Gatorade", baseAmount: 50, unit: "g", type: "liquid" },
@@ -191,16 +219,12 @@ export default function App() {
   const targetGrams = targetToGrams(effectiveTargetAmount, targetUnit, selected?.totalWeight || 250)
   const scaleFactor = selected ? targetGrams / selected.totalWeight : 1
 
-  // Silent Neon sync on mount
+  // Load from Neon on mount; fall back to hardcoded samples when DB unavailable
   useEffect(() => {
     getAllRecipes().then((dbRecipes) => {
       if (dbRecipes.length > 0) {
-        const sampleIds = new Set(getSampleRecipes().map((r) => r.id))
-        const extras = dbRecipes.filter((r) => !sampleIds.has(r.id))
-        if (extras.length > 0) {
-          setRecipes((prev) => [...prev, ...extras])
-          setRecipeOrder((prev) => [...prev, ...extras.map((r) => r.id)])
-        }
+        setRecipes(dbRecipes)
+        setRecipeOrder(dbRecipes.map((r) => r.id))
       }
     })
   }, [])
