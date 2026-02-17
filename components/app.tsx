@@ -166,8 +166,7 @@ function getSampleRecipes(): Recipe[] {
 // Tabs / Sort / Filter
 // ---------------------------------------------------------------------------
 type Tab = "recipes" | "add" | "print"
-type SortBy = "default" | "az" | "za" | "weight" | "ingredients"
-type FilterType = "all" | "tea" | "syrup"
+type SortBy = "default" | "az" | "za" | "ingredients"
 
 // ---------------------------------------------------------------------------
 // Main App
@@ -183,7 +182,6 @@ export default function App() {
   const [deleteConfirm, setDeleteConfirm] = useState<Recipe | null>(null)
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [sortBy, setSortBy] = useState<SortBy>("default")
-  const [filterType, setFilterType] = useState<FilterType>("all")
   const [recipeOrder, setRecipeOrder] = useState<string[]>(() => getSampleRecipes().map((r) => r.id))
   const [dragId, setDragId] = useState<string | null>(null)
   const [dragOverId, setDragOverId] = useState<string | null>(null)
@@ -208,26 +206,20 @@ export default function App() {
   }, [])
 
   const processedRecipes = useMemo(() => {
-    let result = recipes.filter((r) => {
-      const matchesSearch =
+    let result = recipes.filter(
+      (r) =>
         r.name.toLowerCase().includes(search.toLowerCase()) ||
         r.ingredients.some((i) => i.name.toLowerCase().includes(search.toLowerCase()))
-      if (!matchesSearch) return false
-      if (filterType === "tea") return r.ingredients.some((i) => i.type === "tea")
-      if (filterType === "syrup") return r.ingredients.some((i) => i.type === "syrup")
-      return true
-    })
+    )
 
     if (sortBy === "az") {
       result = [...result].sort((a, b) => a.name.localeCompare(b.name))
     } else if (sortBy === "za") {
       result = [...result].sort((a, b) => b.name.localeCompare(a.name))
-    } else if (sortBy === "weight") {
-      result = [...result].sort((a, b) => b.totalWeight - a.totalWeight)
     } else if (sortBy === "ingredients") {
       result = [...result].sort((a, b) => b.ingredients.length - a.ingredients.length)
     } else {
-      // Custom order: sort by recipeOrder, unknown IDs go to the end
+      // Recently added: sort by recipeOrder (insertion order), unknown IDs go to the end
       result = [...result].sort((a, b) => {
         const ai = recipeOrder.indexOf(a.id)
         const bi = recipeOrder.indexOf(b.id)
@@ -236,7 +228,7 @@ export default function App() {
     }
 
     return result
-  }, [recipes, search, filterType, sortBy, recipeOrder])
+  }, [recipes, search, sortBy, recipeOrder])
 
   const handleSelectRecipe = useCallback((id: string) => {
     setSelectedId(id)
@@ -398,7 +390,7 @@ export default function App() {
             (sidebarOpen ? "translate-x-0" : "-translate-x-full")
           }
         >
-          {/* Search + Sort/Filter controls */}
+          {/* Search + Sort controls */}
           <div className="border-b p-3 space-y-2">
             <div className="flex h-9 items-center gap-2 rounded-md border bg-background px-3 transition-colors focus-within:ring-1 focus-within:ring-ring">
               <Search className="h-4 w-4 shrink-0 text-muted-foreground" />
@@ -410,39 +402,14 @@ export default function App() {
                 className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
               />
             </div>
-            {/* Filter chips */}
-            <div className="flex gap-1">
-              {(
-                [
-                  { value: "all", label: "All" },
-                  { value: "tea", label: "🍵 Tea" },
-                  { value: "syrup", label: "🍯 Syrup" },
-                ] as { value: FilterType; label: string }[]
-              ).map((f) => (
-                <button
-                  key={f.value}
-                  onClick={() => setFilterType(f.value)}
-                  className={
-                    "rounded-full px-2.5 py-1 text-xs font-medium transition-colors " +
-                    (filterType === f.value
-                      ? "bg-brand text-brand-foreground"
-                      : "text-muted-foreground hover:bg-accent hover:text-accent-foreground")
-                  }
-                >
-                  {f.label}
-                </button>
-              ))}
-            </div>
-            {/* Sort select */}
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortBy)}
               className="h-7 w-full rounded-md border bg-background px-2 text-xs text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
             >
-              <option value="default">Custom order</option>
+              <option value="default">Recently added</option>
               <option value="az">Name A–Z</option>
               <option value="za">Name Z–A</option>
-              <option value="weight">Heaviest first</option>
               <option value="ingredients">Most ingredients</option>
             </select>
           </div>
