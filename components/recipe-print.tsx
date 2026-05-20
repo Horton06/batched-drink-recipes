@@ -32,13 +32,22 @@ export function RecipePrint({ recipe, scaleFactor, targetAmount, targetUnit, tar
       <table className="mb-8 w-full">
         <thead>
           <tr className="border-b">
-            <th className="py-2 text-left font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <th
+              scope="col"
+              className="py-2 text-left font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+            >
               Ingredient
             </th>
-            <th className="w-20 py-2 text-left font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <th
+              scope="col"
+              className="w-20 py-2 text-left font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+            >
               Type
             </th>
-            <th className="w-28 py-2 text-right font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <th
+              scope="col"
+              className="w-28 py-2 text-right font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+            >
               Amount
             </th>
           </tr>

@@ -41,7 +41,8 @@ export async function getAllRecipes(): Promise<Recipe[]> {
         type: i.type,
       })),
     }))
-  } catch {
+  } catch (err) {
+    console.error("[v0] getAllRecipes failed:", err)
     return []
   }
 }
@@ -68,7 +69,8 @@ export async function saveRecipe(recipe: Recipe): Promise<boolean> {
     }
 
     return true
-  } catch {
+  } catch (err) {
+    console.error("[v0] saveRecipe failed:", err)
     return false
   }
 }
@@ -94,7 +96,8 @@ export async function updateRecipe(recipe: Recipe): Promise<boolean> {
     }
 
     return true
-  } catch {
+  } catch (err) {
+    console.error("[v0] updateRecipe failed:", err)
     return false
   }
 }
@@ -106,7 +109,8 @@ export async function deleteRecipe(id: string): Promise<boolean> {
   try {
     await sql`DELETE FROM recipes WHERE id = ${id}`
     return true
-  } catch {
+  } catch (err) {
+    console.error("[v0] deleteRecipe failed:", err)
     return false
   }
 }

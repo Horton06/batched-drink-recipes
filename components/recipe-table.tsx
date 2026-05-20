@@ -20,13 +20,22 @@ export function RecipeTable({ recipe, scaleFactor }: RecipeTableProps) {
       <table className="hidden w-full md:table">
         <thead>
           <tr className="border-b bg-card">
-            <th className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <th
+              scope="col"
+              className="px-4 py-3 text-left font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+            >
               Ingredient
             </th>
-            <th className="w-28 px-4 py-3 text-right font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <th
+              scope="col"
+              className="w-28 px-4 py-3 text-right font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+            >
               Base
             </th>
-            <th className="w-32 px-4 py-3 text-right font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+            <th
+              scope="col"
+              className="w-32 px-4 py-3 text-right font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+            >
               Scaled
             </th>
           </tr>
@@ -52,7 +61,8 @@ export function RecipeTable({ recipe, scaleFactor }: RecipeTableProps) {
                   </div>
                   {isTea && scaleFactor > 1 && (
                     <div className="mt-1 text-xs text-emerald-400">
-                      🍵 {batches} batch{batches !== 1 ? "es" : ""}
+                      <span aria-hidden="true">🍵 </span>
+                      {batches} batch{batches !== 1 ? "es" : ""}
                     </div>
                   )}
                 </td>
@@ -94,7 +104,8 @@ export function RecipeTable({ recipe, scaleFactor }: RecipeTableProps) {
                 </p>
                 {isTea && scaleFactor > 1 && (
                   <p className="mt-1 text-xs text-emerald-400">
-                    🍵 {batches} batch{batches !== 1 ? "es" : ""}
+                    <span aria-hidden="true">🍵 </span>
+                    {batches} batch{batches !== 1 ? "es" : ""}
                   </p>
                 )}
               </div>

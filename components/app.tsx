@@ -537,14 +537,17 @@ export default function App() {
               </div>
 
               {/* Scaling controls */}
-              <div className="mb-6 rounded-lg border bg-card p-4">
-                <span className="mb-3 block font-mono text-xs uppercase tracking-widest text-muted-foreground">
+              <fieldset className="mb-6 rounded-lg border bg-card p-4">
+                <legend className="mb-3 px-1 font-mono text-xs uppercase tracking-widest text-muted-foreground">
                   Scale
-                </span>
+                </legend>
                 <div className="flex flex-wrap items-end gap-3">
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">Amount</label>
+                    <label htmlFor="scale-amount" className="text-xs font-medium text-muted-foreground">
+                      Amount
+                    </label>
                     <input
+                      id="scale-amount"
                       type="number"
                       min={0.1}
                       step={0.5}
@@ -561,8 +564,11 @@ export default function App() {
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
-                    <label className="text-xs font-medium text-muted-foreground">Unit</label>
+                    <label htmlFor="scale-unit" className="text-xs font-medium text-muted-foreground">
+                      Unit
+                    </label>
                     <select
+                      id="scale-unit"
                       value={targetUnit}
                       onChange={(e) => setTargetUnit(e.target.value)}
                       className="h-9 rounded-md border bg-background px-3 text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
@@ -574,11 +580,15 @@ export default function App() {
                       ))}
                     </select>
                   </div>
-                  <div className="flex h-9 items-center rounded-md bg-brand/10 px-3 font-mono text-sm font-medium tabular-nums text-brand">
+                  <div
+                    aria-live="polite"
+                    aria-atomic="true"
+                    className="flex h-9 items-center rounded-md border border-brand/20 bg-brand/10 px-3 font-mono text-sm font-medium tabular-nums text-brand"
+                  >
                     {formatGrams(targetGrams)} total
                   </div>
                 </div>
-              </div>
+              </fieldset>
 
               {/* Ingredient table */}
               <RecipeTable recipe={selected} scaleFactor={scaleFactor} />
@@ -609,7 +619,7 @@ export default function App() {
 
           {tab === "print" && selected && (
             <div className="mx-auto max-w-2xl p-4 md:p-8">
-              <div className="mb-6 flex items-center justify-between">
+              <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight text-foreground">Print Recipe</h2>
                   <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
@@ -618,9 +628,9 @@ export default function App() {
                 </div>
                 <button
                   onClick={() => window.print()}
-                  className="flex items-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand/90"
+                  className="flex shrink-0 items-center justify-center gap-2 rounded-md bg-brand px-4 py-2 text-sm font-medium text-brand-foreground transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:self-start"
                 >
-                  <Printer className="h-4 w-4" />
+                  <Printer aria-hidden="true" className="h-4 w-4" />
                   Print
                 </button>
               </div>

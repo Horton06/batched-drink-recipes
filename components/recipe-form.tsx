@@ -81,10 +81,14 @@ export function RecipeForm({ onAdd }: RecipeFormProps) {
 
       {/* Name */}
       <div className="mb-4">
-        <label className="mb-1.5 block font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+        <label
+          htmlFor="recipe-name"
+          className="mb-1.5 block font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+        >
           Recipe Name
         </label>
         <input
+          id="recipe-name"
           type="text"
           required
           value={name}
@@ -96,10 +100,14 @@ export function RecipeForm({ onAdd }: RecipeFormProps) {
 
       {/* Notes */}
       <div className="mb-6">
-        <label className="mb-1.5 block font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground">
+        <label
+          htmlFor="recipe-notes"
+          className="mb-1.5 block font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
+        >
           Notes (optional)
         </label>
         <textarea
+          id="recipe-notes"
           value={notes}
           onChange={(e) => setNotes(e.target.value)}
           placeholder="Preparation steps, storage instructions, etc."
@@ -112,26 +120,34 @@ export function RecipeForm({ onAdd }: RecipeFormProps) {
         <button
           type="button"
           onClick={() => setShowHelp(!showHelp)}
-          className="flex w-full items-center justify-between text-left"
+          aria-expanded={showHelp}
+          aria-controls="ingredient-help"
+          className="flex w-full items-center justify-between text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
         >
           <div className="flex items-center gap-2">
-            <Info className="h-4 w-4 text-brand" />
+            <Info aria-hidden="true" className="h-4 w-4 text-brand" />
             <span className="text-sm font-medium text-foreground">How to add ingredients</span>
           </div>
           <span className="text-xs text-muted-foreground">{showHelp ? "Hide" : "Show"}</span>
         </button>
         {showHelp && (
-          <div className="mt-3 space-y-2 border-t border-brand/10 pt-3 text-sm text-muted-foreground">
+          <div id="ingredient-help" className="mt-3 space-y-2 border-t border-brand/10 pt-3 text-sm text-muted-foreground">
             <p>
-              <strong className="text-foreground">Ingredient names:</strong> Include "tea" or "syrup" in the name for automatic type detection.
+              <strong className="text-foreground">Ingredient names:</strong> Include &quot;tea&quot; or &quot;syrup&quot; in the name for automatic type detection.
             </p>
             <div className="space-y-1 pl-4">
-              <p>• 🍵 <strong className="text-emerald-400">Tea</strong> - e.g., "Earl Grey Tea", "Green Tea" (used for batch calculations)</p>
-              <p>• 🍯 <strong className="text-amber-400">Syrup</strong> - e.g., "Simple Syrup", "Vanilla Syrup" (uses 1.4x density)</p>
-              <p>• Other ingredients will use standard density (1.0x)</p>
+              <p>
+                <span aria-hidden="true">• 🍵 </span>
+                <strong className="text-emerald-400">Tea</strong> - e.g., &quot;Earl Grey Tea&quot;, &quot;Green Tea&quot; (used for batch calculations)
+              </p>
+              <p>
+                <span aria-hidden="true">• 🍯 </span>
+                <strong className="text-amber-400">Syrup</strong> - e.g., &quot;Simple Syrup&quot;, &quot;Vanilla Syrup&quot; (uses 1.4x density)
+              </p>
+              <p><span aria-hidden="true">• </span>Other ingredients will use standard density (1.0x)</p>
             </div>
             <p className="pt-2">
-              <strong className="text-foreground">Units:</strong> You can enter ingredients in any unit (oz, ml, cups, etc.) and they'll be automatically converted to grams.
+              <strong className="text-foreground">Units:</strong> You can enter ingredients in any unit (oz, ml, cups, etc.) and they&apos;ll be automatically converted to grams.
             </p>
           </div>
         )}
@@ -140,7 +156,11 @@ export function RecipeForm({ onAdd }: RecipeFormProps) {
       {/* Total weight badge */}
       <div className="mb-4 flex items-center justify-between">
         <h3 className="text-sm font-medium text-foreground">Ingredients</h3>
-        <span className="rounded-md bg-brand/10 px-2.5 py-1 font-mono text-xs font-medium tabular-nums text-brand">
+        <span
+          aria-live="polite"
+          aria-atomic="true"
+          className="rounded-md bg-brand/10 px-2.5 py-1 font-mono text-xs font-medium tabular-nums text-brand"
+        >
           {Math.round(totalWeight)}g total
         </span>
       </div>
@@ -161,12 +181,12 @@ export function RecipeForm({ onAdd }: RecipeFormProps) {
                 />
                 {ing.type === "tea" && (
                   <span className="shrink-0 rounded-full bg-emerald-900/30 px-2 py-1 text-xs text-emerald-400 border border-emerald-800/40">
-                    🍵 Tea
+                    <span aria-hidden="true">🍵 </span>Tea
                   </span>
                 )}
                 {ing.type === "syrup" && (
                   <span className="shrink-0 rounded-full bg-amber-900/30 px-2 py-1 text-xs text-amber-400 border border-amber-800/40">
-                    🍯 Syrup
+                    <span aria-hidden="true">🍯 </span>Syrup
                   </span>
                 )}
               </div>
