@@ -15,7 +15,7 @@
   --secondary: #F0EDE6;
   --secondary-foreground: #252422;
   --muted: #F0EDE6;
-  --muted-foreground: #403D39;
+  --muted-foreground: #57534E;
   --accent: #F0EDE6;
   --accent-foreground: #252422;
   --destructive: #D7263D;
@@ -26,30 +26,36 @@
   --radius: 0.5rem;
   --brand: #EB5E28;
   --brand-foreground: #FFFCF2;
+  --success: #2F855A;
+  --warning: #B45309;
 }
 
 .dark {
-  --background: #0D1B2A;
-  --foreground: #E0E1DD;
-  --card: #1B263B;
-  --card-foreground: #E0E1DD;
-  --popover: #1B263B;
-  --popover-foreground: #E0E1DD;
-  --primary: #778DA9;
-  --primary-foreground: #0D1B2A;
-  --secondary: #1B263B;
-  --secondary-foreground: #E0E1DD;
-  --muted: #415A77;
-  --muted-foreground: #778DA9;
-  --accent: #1B263B;
-  --accent-foreground: #E0E1DD;
-  --destructive: #D7263D;
-  --destructive-foreground: #E0E1DD;
-  --border: #415A77;
-  --input: #415A77;
-  --ring: #778DA9;
-  --brand: #778DA9;
-  --brand-foreground: #0D1B2A;
+  /* Slate / zinc neutral palette tuned for working tools.
+     Brighter muted-foreground (≈#9CA9BC) brings AA contrast on cards. */
+  --background: #0B1220;
+  --foreground: #E5E9F0;
+  --card: #131B2C;
+  --card-foreground: #E5E9F0;
+  --popover: #131B2C;
+  --popover-foreground: #E5E9F0;
+  --primary: #E5E9F0;
+  --primary-foreground: #0B1220;
+  --secondary: #1B2436;
+  --secondary-foreground: #E5E9F0;
+  --muted: #1B2436;
+  --muted-foreground: #9CA9BC;
+  --accent: #1F2A3D;
+  --accent-foreground: #F0F2F6;
+  --destructive: #F87171;
+  --destructive-foreground: #0B1220;
+  --border: #25304A;
+  --input: #25304A;
+  --ring: #F4A261;
+  --brand: #F4A261;
+  --brand-foreground: #0B1220;
+  --success: #34D399;
+  --warning: #F4BF50;
 }
 
 @theme inline {
@@ -74,6 +80,8 @@
   --color-ring: var(--ring);
   --color-brand: var(--brand);
   --color-brand-foreground: var(--brand-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
@@ -86,9 +94,16 @@
   border-color: var(--border);
 }
 
+html,
 body {
   background-color: var(--background);
   color: var(--foreground);
+}
+
+/* Stronger, consistent visible focus across native controls */
+:where(button, [role="button"], a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 @media print {

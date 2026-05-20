@@ -1,9 +1,13 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Trash2, Info } from "lucide-react"
 import type { Recipe, IngredientType } from "@/types/recipe"
-import { convertToGrams, getAvailableUnits, detectIngredientType } from "@/utils/unit-conversion"
+import {
+  RecipeFields,
+  type RecipeFieldsValue,
+  totalGrams,
+} from "@/components/recipe-fields"
+import { convertToGrams } from "@/utils/unit-conversion"
 
 interface RecipeEditFormProps {
   recipe: Recipe
@@ -11,62 +15,31 @@ interface RecipeEditFormProps {
   onCancel: () => void
 }
 
-interface FormIngredient {
-  name: string
-  amount: number
-  unit: string
-  type: IngredientType
-}
-
 export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps) {
-  const [name, setName] = useState(recipe.name)
-  const [notes, setNotes] = useState(recipe.notes || "")
-  const [showHelp, setShowHelp] = useState(false)
-  const [ingredients, setIngredients] = useState<FormIngredient[]>(
-    recipe.ingredients.map((ing) => ({
+  const [value, setValue] = useState<RecipeFieldsValue>(() => ({
+    name: recipe.name,
+    notes: recipe.notes || "",
+    ingredients: recipe.ingredients.map((ing) => ({
       name: ing.name,
       amount: ing.originalAmount || ing.baseAmount,
       unit: ing.originalUnit || ing.unit,
       type: ing.type as IngredientType,
-    }))
-  )
-  const units = getAvailableUnits()
-
-  const totalWeight = ingredients.reduce(
-    (sum, ing) => sum + convertToGrams(ing.amount, ing.unit, ing.type),
-    0
-  )
-
-  const updateIngredient = (i: number, patch: Partial<FormIngredient>) => {
-    setIngredients((prev) =>
-      prev.map((ing, idx) => {
-        if (idx !== i) return ing
-        const updated = { ...ing, ...patch }
-        // Auto-detect type when name changes
-        if (patch.name !== undefined) {
-          updated.type = detectIngredientType(updated.name)
-        }
-        return updated
-      })
-    )
-  }
-
-  const removeIngredient = (i: number) => {
-    setIngredients((prev) => prev.filter((_, idx) => idx !== i))
-  }
+    })),
+  }))
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!name.trim()) return
-    if (ingredients.some((ing) => !ing.name.trim())) return
-    if (totalWeight <= 0) return
+    if (!value.name.trim()) return
+    if (value.ingredients.some((ing) => !ing.name.trim())) return
+    const total = totalGrams(value.ingredients)
+    if (total <= 0) return
 
     const updated: Recipe = {
       ...recipe,
-      name: name.trim(),
-      totalWeight,
-      notes: notes.trim() || undefined,
-      ingredients: ingredients.map((ing) => ({
+      name: value.name.trim(),
+      totalWeight: total,
+      notes: value.notes.trim() || undefined,
+      ingredients: value.ingredients.map((ing) => ({
         name: ing.name.trim(),
         baseAmount: convertToGrams(ing.amount, ing.unit, ing.type),
         unit: "g",
@@ -80,187 +53,22 @@ export function RecipeEditForm({ recipe, onSave, onCancel }: RecipeEditFormProps
   }
 
   return (
-    <form onSubmit={handleSubmit}>
-      <h2 className="mb-6 text-2xl font-bold tracking-tight text-foreground">Edit Recipe</h2>
+    <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+      <h2 className="text-2xl font-bold tracking-tight text-foreground">Edit Recipe</h2>
 
-      <div className="mb-4">
-        <label
-          htmlFor="edit-recipe-name"
-          className="mb-1.5 block font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
-        >
-          Recipe Name
-        </label>
-        <input
-          id="edit-recipe-name"
-          type="text"
-          required
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="h-10 w-full rounded-md border bg-background px-3 text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
-        />
-      </div>
+      <RecipeFields value={value} onChange={setValue} idPrefix={`edit-${recipe.id}`} />
 
-      <div className="mb-6">
-        <label
-          htmlFor="edit-recipe-notes"
-          className="mb-1.5 block font-mono text-xs font-medium uppercase tracking-widest text-muted-foreground"
-        >
-          Notes (optional)
-        </label>
-        <textarea
-          id="edit-recipe-notes"
-          value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          placeholder="Preparation steps, storage instructions, etc."
-          rows={3}
-          className="w-full resize-y rounded-md border bg-background px-3 py-2 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
-        />
-      </div>
-
-      <div className="mb-6 rounded-lg border border-brand/20 bg-brand/5 p-4">
-        <button
-          type="button"
-          onClick={() => setShowHelp(!showHelp)}
-          aria-expanded={showHelp}
-          aria-controls="edit-ingredient-help"
-          className="flex w-full items-center justify-between text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-        >
-          <div className="flex items-center gap-2">
-            <Info aria-hidden="true" className="h-4 w-4 text-brand" />
-            <span className="text-sm font-medium text-foreground">How to add ingredients</span>
-          </div>
-          <span className="text-xs text-muted-foreground">{showHelp ? "Hide" : "Show"}</span>
-        </button>
-        {showHelp && (
-          <div id="edit-ingredient-help" className="mt-3 space-y-2 border-t border-brand/10 pt-3 text-sm text-muted-foreground">
-            <p>
-              <strong className="text-foreground">Ingredient names:</strong> Include &quot;tea&quot; or &quot;syrup&quot; in the name for automatic type detection.
-            </p>
-            <div className="space-y-1 pl-4">
-              <p>
-                <span aria-hidden="true">• 🍵 </span>
-                <strong className="text-emerald-400">Tea</strong> - e.g., &quot;Earl Grey Tea&quot;, &quot;Green Tea&quot; (used for batch calculations)
-              </p>
-              <p>
-                <span aria-hidden="true">• 🍯 </span>
-                <strong className="text-amber-400">Syrup</strong> - e.g., &quot;Simple Syrup&quot;, &quot;Vanilla Syrup&quot; (uses 1.4x density)
-              </p>
-              <p><span aria-hidden="true">• </span>Other ingredients will use standard density (1.0x)</p>
-            </div>
-            <p className="pt-2">
-              <strong className="text-foreground">Units:</strong> You can enter ingredients in any unit (oz, ml, cups, etc.) and they&apos;ll be automatically converted to grams.
-            </p>
-          </div>
-        )}
-      </div>
-
-      <div className="mb-4 flex items-center justify-between">
-        <h3 className="text-sm font-medium text-foreground">Ingredients</h3>
-        <span
-          aria-live="polite"
-          aria-atomic="true"
-          className="rounded-md bg-brand/10 px-2.5 py-1 font-mono text-xs font-medium tabular-nums text-brand"
-        >
-          {Math.round(totalWeight)}g total
-        </span>
-      </div>
-
-      <div className="mb-6 flex flex-col gap-3">
-        {ingredients.map((ing, i) => (
-          <div key={i} className="rounded-lg border bg-card p-4">
-            <div className="flex flex-col gap-3">
-              <div className="flex items-center gap-2">
-                <input
-                  type="text"
-                  required
-                  value={ing.name}
-                  onChange={(e) => updateIngredient(i, { name: e.target.value })}
-                  placeholder="Ingredient name (e.g., Earl Grey Tea, Simple Syrup)"
-                  className="h-9 flex-1 rounded-md border bg-background px-3 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:ring-1 focus:ring-ring"
-                />
-                {ing.type === "tea" && (
-                  <span className="shrink-0 rounded-full bg-emerald-900/30 px-2 py-1 text-xs text-emerald-400 border border-emerald-800/40">
-                    <span aria-hidden="true">🍵 </span>Tea
-                  </span>
-                )}
-                {ing.type === "syrup" && (
-                  <span className="shrink-0 rounded-full bg-amber-900/30 px-2 py-1 text-xs text-amber-400 border border-amber-800/40">
-                    <span aria-hidden="true">🍯 </span>Syrup
-                  </span>
-                )}
-              </div>
-              <div className="flex gap-2">
-                <input
-                  type="number"
-                  required
-                  min={0}
-                  step={0.01}
-                  value={ing.amount || ""}
-                  onChange={(e) => {
-                    const val = e.target.value
-                    updateIngredient(i, { amount: val === "" ? 0 : parseFloat(val) })
-                  }}
-                  onBlur={(e) => {
-                    const val = parseFloat(e.target.value)
-                    if (isNaN(val) || val <= 0) {
-                      updateIngredient(i, { amount: 0.1 })
-                    }
-                  }}
-                  placeholder="0"
-                  className="h-9 w-24 rounded-md border bg-background px-3 font-mono text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
-                />
-                <select
-                  value={ing.unit}
-                  onChange={(e) => updateIngredient(i, { unit: e.target.value })}
-                  className="h-9 flex-1 rounded-md border bg-background px-2 text-sm text-foreground outline-none transition-colors focus:ring-1 focus:ring-ring"
-                >
-                  {units.map((u) => (
-                    <option key={u.value} value={u.value}>
-                      {u.label}
-                    </option>
-                  ))}
-                </select>
-                {ingredients.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeIngredient(i)}
-                    className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
-                    aria-label="Remove ingredient"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                )}
-              </div>
-              {ing.unit !== "g" && ing.amount > 0 && (
-                <p className="text-xs text-muted-foreground">
-                  = {Math.round(convertToGrams(ing.amount, ing.unit, ing.type))}g
-                </p>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
-
-      <button
-        type="button"
-        onClick={() => setIngredients((prev) => [...prev, { name: "", amount: 0, unit: "g", type: "other" }])}
-        className="mb-4 flex h-10 w-full items-center justify-center gap-2 rounded-md border border-dashed text-sm text-muted-foreground transition-colors hover:border-foreground/20 hover:text-foreground"
-      >
-        <Plus className="h-4 w-4" />
-        Add Ingredient
-      </button>
-
-      <div className="flex gap-3">
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:gap-3">
         <button
           type="button"
           onClick={onCancel}
-          className="h-10 flex-1 rounded-md border text-sm text-foreground transition-colors hover:bg-accent"
+          className="h-12 flex-1 rounded-md border text-sm font-medium text-foreground transition-colors hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:h-11"
         >
           Cancel
         </button>
         <button
           type="submit"
-          className="h-10 flex-1 rounded-md bg-brand text-sm font-medium text-brand-foreground transition-colors hover:bg-brand/90"
+          className="h-12 flex-1 rounded-md bg-brand text-sm font-semibold text-brand-foreground transition-colors hover:bg-brand/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring sm:h-11"
         >
           Save Changes
         </button>
